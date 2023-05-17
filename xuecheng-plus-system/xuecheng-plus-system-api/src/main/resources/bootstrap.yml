@@ -7,7 +7,7 @@ spring:
   application:
     name: system-api
   datasource:
-    url: jdbc:mysql://localhost:3306/xc_system?serverTimezone=UTC&userUnicode=true&useSSL=false&
+    url: jdbc:mysql://localhost:3307/xc_system?serverTimezone=UTC&userUnicode=true&useSSL=false&
     username: xuecheng
     password: xuecheng
 # 日志文件配置路径
