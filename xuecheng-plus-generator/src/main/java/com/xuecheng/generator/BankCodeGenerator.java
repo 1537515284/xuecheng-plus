@@ -17,8 +17,6 @@ public class BankCodeGenerator {
 
 	// TODO 修改服务名以及数据表名
 	private static final String SERVICE_NAME = "bank1";
-	private static final String DATA_SOURCE_USER_NAME  = "xuecheng";
-	private static final String DATA_SOURCE_PASSWORD  = "xuecheng";
 	private static final String[] TABLE_NAMES = new String[]{
 			"account_info",
 			"de_duplication",
@@ -53,11 +51,11 @@ public class BankCodeGenerator {
 		// 数据库配置
 		DataSourceConfig dsc = new DataSourceConfig();
 		dsc.setDbType(DbType.MYSQL);
-		dsc.setUrl("jdbc:mysql://localhost:3306/" + SERVICE_NAME
+		dsc.setUrl("jdbc:mysql://"+ DbConfig.MYSQL_ADDRESS +"/" + SERVICE_NAME
 				+ "?useUnicode=true&useSSL=false&characterEncoding=utf8");
 		dsc.setDriverName("com.mysql.jdbc.Driver");
-		dsc.setUsername(DATA_SOURCE_USER_NAME);
-		dsc.setPassword(DATA_SOURCE_PASSWORD);
+		dsc.setUsername(DbConfig.DATA_SOURCE_USER_NAME);
+		dsc.setPassword(DbConfig.DATA_SOURCE_PASSWORD);
 		mpg.setDataSource(dsc);
 
 		// 包配置

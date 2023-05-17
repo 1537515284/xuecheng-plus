@@ -18,8 +18,6 @@ public class SystemCodeGenerator {
 	// TODO 修改服务名以及数据表名
 	private static final String SERVICE_NAME = "system";
 
-	private static final String DATA_SOURCE_USER_NAME  = "xuecheng";
-	private static final String DATA_SOURCE_PASSWORD  = "xuecheng";
 	private static final String[] TABLE_NAMES = new String[]{
 			"course_category",
 			"dictionary",
@@ -54,11 +52,11 @@ public class SystemCodeGenerator {
 		// 数据库配置
 		DataSourceConfig dsc = new DataSourceConfig();
 		dsc.setDbType(DbType.MYSQL);
-		dsc.setUrl("jdbc:mysql://192.168.101.65:3306/xcplus_" + SERVICE_NAME
+		dsc.setUrl("jdbc:mysql://"+ DbConfig.MYSQL_ADDRESS +"/xc_" + SERVICE_NAME
 				+ "?useUnicode=true&useSSL=false&characterEncoding=utf8");
 		dsc.setDriverName("com.mysql.cj.jdbc.Driver");
-		dsc.setUsername(DATA_SOURCE_USER_NAME);
-		dsc.setPassword(DATA_SOURCE_PASSWORD);
+		dsc.setUsername(DbConfig.DATA_SOURCE_USER_NAME);
+		dsc.setPassword(DbConfig.DATA_SOURCE_PASSWORD);
 		mpg.setDataSource(dsc);
 
 		// 包配置
