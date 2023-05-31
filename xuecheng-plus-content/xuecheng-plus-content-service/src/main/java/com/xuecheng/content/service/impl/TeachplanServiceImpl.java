@@ -1,8 +1,8 @@
 package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.xuecheng.base.exception.CommonError;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.mapper.TeachplanMediaMapper;
@@ -53,7 +53,7 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
             BeanUtils.copyProperties(teachplanDto,teachplan);
             teachplanMapper.updateById(teachplan);
         }else{
-            //取出同父同级别的课程计划数量
+            //取出同父同级别的课程计划中最大的排序号
             int count = getTeachplanCount(teachplanDto.getCourseId(), teachplanDto.getParentid());
             Teachplan teachplanNew = new Teachplan();
             //设置排序号
@@ -104,8 +104,7 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
     private int getSubTeachplanCount(String teachPlanId) {
         LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Teachplan::getParentid, teachPlanId);
-        int count = teachplanMapper.selectCount(queryWrapper);
-        return count;
+        return teachplanMapper.selectCount(queryWrapper);
     }
 
     /**
@@ -115,11 +114,12 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
      * @return int 最新排序号
      */
     private int getTeachplanCount(long courseId,long parentId){
-        LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Teachplan::getCourseId,courseId);
-        queryWrapper.eq(Teachplan::getParentid,parentId);
-        Integer count = teachplanMapper.selectCount(queryWrapper);
-        return count;
+        QueryWrapper<Teachplan> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("course_id",courseId);
+        queryWrapper.eq("parentid",parentId);
+        queryWrapper.select("MAX(orderby) AS orderby");
+        Teachplan teachplan = teachplanMapper.selectOne(queryWrapper);
+        return teachplan.getOrderby();
     }
 
 }
