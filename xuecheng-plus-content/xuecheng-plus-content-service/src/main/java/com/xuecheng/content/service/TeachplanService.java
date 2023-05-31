@@ -18,17 +18,21 @@ import java.util.List;
 public interface TeachplanService extends IService<Teachplan> {
 
     /**
-     * @description 查询课程计划树型结构
+     * 查询课程计划树型结构
      * @param courseId  课程id
      * @return List<TeachplanDto>
      */
-    public List<TeachplanDto> findTeachplanTree(long courseId);
+    List<TeachplanDto> findTeachplanTree(long courseId);
 
     /**
-     * @description 保存课程计划
+     * 保存课程计划
      * @param teachplanDto  课程计划信息
-     * @return void
      */
-    public void saveTeachplan(SaveTeachplanDto teachplanDto);
+    void saveTeachplan(SaveTeachplanDto teachplanDto);
 
+    /**
+     * 保存课程计划
+     * @param teachPlanId  课程计划编号
+     */
+    void removeTeachplan(String teachPlanId);
 }

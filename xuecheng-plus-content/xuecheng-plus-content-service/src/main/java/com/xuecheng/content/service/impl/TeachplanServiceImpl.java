@@ -2,10 +2,14 @@ package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.xuecheng.base.exception.CommonError;
+import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.content.mapper.TeachplanMapper;
+import com.xuecheng.content.mapper.TeachplanMediaMapper;
 import com.xuecheng.content.model.dto.SaveTeachplanDto;
 import com.xuecheng.content.model.dto.TeachplanDto;
 import com.xuecheng.content.model.po.Teachplan;
+import com.xuecheng.content.model.po.TeachplanMedia;
 import com.xuecheng.content.service.TeachplanService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -28,6 +33,9 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
 
     @Autowired
     private TeachplanMapper teachplanMapper;
+
+    @Autowired
+    private TeachplanMediaMapper teachplanMediaMapper;
 
     @Override
     public List<TeachplanDto> findTeachplanTree(long courseId) {
@@ -54,6 +62,50 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
 
             teachplanMapper.insert(teachplanNew);
         }
+    }
+
+    @Transactional
+    @Override
+    public void removeTeachplan(String teachPlanId) {
+        Teachplan teachplan = teachplanMapper.selectById(teachPlanId);
+        if(Objects.isNull(teachplan)){
+            XueChengPlusException.cast("没有查找到此课程计划信息");
+        }
+        Integer firstLevelChapter = 1;
+        Long firstLevelParentId = 0L;
+        if(firstLevelParentId.equals(teachplan.getParentid()) && firstLevelChapter.equals(teachplan.getGrade())){
+            // 一级章节
+            int count = getSubTeachplanCount(teachPlanId);
+            if(count > 0){
+                XueChengPlusException.cast("课程计划信息还有子级信息，无法操作");
+            }
+        }else {
+            // 二级章节
+            removeTeachplanMedia(teachPlanId);
+        }
+        teachplanMapper.deleteById(teachPlanId);
+    }
+
+    /**
+     * 删除章节视频
+     * @param teachPlanId 章节编号
+     */
+    private void removeTeachplanMedia(String teachPlanId) {
+        LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TeachplanMedia::getTeachplanId, teachPlanId);
+        teachplanMediaMapper.delete(queryWrapper);
+    }
+
+    /**
+     * 获取子章节数量
+     * @param teachPlanId 章节编号
+     * @return int 子章节数量
+     */
+    private int getSubTeachplanCount(String teachPlanId) {
+        LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Teachplan::getParentid, teachPlanId);
+        int count = teachplanMapper.selectCount(queryWrapper);
+        return count;
     }
 
     /**

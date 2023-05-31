@@ -34,4 +34,10 @@ public class TeachplanController {
         teachplanService.saveTeachplan(teachplan);
     }
 
+    @ApiOperation("课程计划删除")
+    @DeleteMapping("/teachplan/{teachPlanId}")
+    public void removeTeachplan(@PathVariable String teachPlanId){
+        teachplanService.removeTeachplan(teachPlanId);
+    }
+
 }
