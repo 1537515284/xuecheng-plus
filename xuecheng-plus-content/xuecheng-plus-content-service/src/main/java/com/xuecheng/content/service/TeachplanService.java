@@ -35,4 +35,11 @@ public interface TeachplanService extends IService<Teachplan> {
      * @param teachPlanId  课程计划编号
      */
     void removeTeachplan(String teachPlanId);
+
+    /**
+     * 移动课程计划
+     * @param movementDirection 移动方向
+     * @param teachPlanId   课程计划编号
+     */
+    void moveTeachplan(String movementDirection, String teachPlanId);
 }

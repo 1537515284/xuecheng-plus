@@ -31,6 +31,15 @@ import java.util.Objects;
 @Service
 public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan> implements TeachplanService {
 
+    /**
+     * 第一级课程计划的父ID
+     */
+    private static final Long firstLevelParentId = 0L;
+    /**
+     * 第一级课程计划的等级
+     */
+    private static final Integer firstLevelGrade = 1;
+
     @Autowired
     private TeachplanMapper teachplanMapper;
 
@@ -71,9 +80,7 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
         if(Objects.isNull(teachplan)){
             XueChengPlusException.cast("没有查找到此课程计划信息");
         }
-        Integer firstLevelChapter = 1;
-        Long firstLevelParentId = 0L;
-        if(firstLevelParentId.equals(teachplan.getParentid()) && firstLevelChapter.equals(teachplan.getGrade())){
+        if(isFirstLevelChapter(teachplan)){
             // 一级章节
             int count = getSubTeachplanCount(teachPlanId);
             if(count > 0){
@@ -84,6 +91,74 @@ public class TeachplanServiceImpl extends ServiceImpl<TeachplanMapper, Teachplan
             removeTeachplanMedia(teachPlanId);
         }
         teachplanMapper.deleteById(teachPlanId);
+    }
+
+    @Transactional
+    @Override
+    public void moveTeachplan(String movementDirection, String teachPlanId) {
+        Teachplan teachplan = teachplanMapper.selectById(teachPlanId);
+        if(Objects.isNull(teachplan)){
+            XueChengPlusException.cast("没有查找到此课程计划信息");
+        }
+
+        // 获取相邻的章节
+        Teachplan tarTeachplan  = getTarTeachplan(teachplan, movementDirection);
+        if (tarTeachplan == null){
+            return;
+        }
+
+        // 交换排序号并更新
+        int originalOrderBy = teachplan.getOrderby();
+        teachplan.setOrderby(tarTeachplan.getOrderby());
+        tarTeachplan.setOrderby(originalOrderBy);
+        teachplanMapper.updateById(teachplan);
+        teachplanMapper.updateById(tarTeachplan);
+    }
+
+    /**
+     * 获取上/下方相邻的课程计划
+     * @param teachplan 要调整的课程计划
+     * @param movementDirection 移动方向
+     * @return Teachplan
+     */
+    private Teachplan getTarTeachplan(Teachplan teachplan, String movementDirection) {
+        String columns = "";
+        if("moveup".equals(movementDirection)){
+            columns = "id,MAX(orderby) AS orderby";
+        } else if("movedown".equals(movementDirection)) {
+            columns = "id,MIN(orderby) AS orderby";
+        }else {
+            return null;
+        }
+        QueryWrapper<Teachplan> queryWrapper = new QueryWrapper<>();
+        if(isFirstLevelChapter(teachplan)){
+            // 一级章节....
+            Long courseId = teachplan.getCourseId();
+            queryWrapper.select(columns);
+            queryWrapper.eq("course_id",courseId);
+            queryWrapper.eq("parentid",firstLevelParentId);
+        }else {
+            // 二级章节....
+            Long parentId = teachplan.getParentid();
+            queryWrapper.select(columns);
+            queryWrapper.eq("parentid",parentId);
+        }
+        queryWrapper.lt("moveup".equals(movementDirection),"orderby",teachplan.getOrderby());
+        queryWrapper.gt("movedown".equals(movementDirection),"orderby",teachplan.getOrderby());
+        queryWrapper.groupBy("id");
+        queryWrapper.orderByDesc("moveup".equals(movementDirection),"orderby");
+        queryWrapper.orderByAsc("movedown".equals(movementDirection),"orderby");
+        queryWrapper.last("limit 1");
+        return teachplanMapper.selectOne(queryWrapper);
+    }
+
+    /**
+     * 判断是否是第一级课程计划
+     * @param teachplan 课程计划对象
+     * @return boolean
+     */
+    private boolean isFirstLevelChapter(Teachplan teachplan) {
+        return firstLevelParentId.equals(teachplan.getParentid()) && firstLevelGrade.equals(teachplan.getGrade());
     }
 
     /**
