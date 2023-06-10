@@ -15,10 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @description 课程信息编辑接口
  */
@@ -55,6 +51,12 @@ public class CourseBaseInfoController {
         //机构id，由于认证系统没有上线暂时硬编码
         Long companyId = 1232141425L;
         return courseBaseService.updateCourseBase(companyId,editCourseDto);
+    }
+
+    @ApiOperation("删除课程信息")
+    @DeleteMapping("/course/{courseId}")
+    public void removeCourse(@PathVariable String courseId){
+        courseBaseService.removeCourse(courseId);
     }
 
 }
